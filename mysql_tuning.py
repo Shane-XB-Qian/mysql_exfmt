@@ -123,7 +123,10 @@ def f_find_in_list(myList,value):
 def f_get_parm(p_dbinfo):
     conn = MySQLdb.connect(host=p_dbinfo[0], port=string.atoi(p_dbinfo[1]),user=p_dbinfo[2], passwd=p_dbinfo[3],db=p_dbinfo[4])
     cursor = conn.cursor()
-    cursor.execute("select lower(variable_name),variable_value from INFORMATION_SCHEMA.GLOBAL_VARIABLES where upper(variable_name) in ('"+"','".join(list(SYS_PARM_FILTER))+"') order by variable_name")
+    try:
+        cursor.execute("select lower(variable_name),variable_value from INFORMATION_SCHEMA.GLOBAL_VARIABLES where upper(variable_name) in ('"+"','".join(list(SYS_PARM_FILTER))+"') order by variable_name")
+    except:
+        cursor.execute("select lower(variable_name),variable_value from performance_schema.global_variables where upper(variable_name) in ('"+"','".join(list(SYS_PARM_FILTER))+"') order by variable_name")
     records = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -150,7 +153,10 @@ def f_print_parm(p_parm_result):
 def f_get_optimizer_switch(p_dbinfo):
     conn = MySQLdb.connect(host=p_dbinfo[0], port=string.atoi(p_dbinfo[1]),user=p_dbinfo[2], passwd=p_dbinfo[3],db=p_dbinfo[4])
     cursor = conn.cursor()
-    cursor.execute("select variable_value from INFORMATION_SCHEMA.GLOBAL_VARIABLES where upper(variable_name)='OPTIMIZER_SWITCH'")
+    try:
+        cursor.execute("select variable_value from INFORMATION_SCHEMA.GLOBAL_VARIABLES where upper(variable_name)='OPTIMIZER_SWITCH'")
+    except:
+        cursor.execute("select variable_value from performance_schema.global_variables where upper(variable_name)='OPTIMIZER_SWITCH'")
     records = cursor.fetchall()   
     cursor.close()
     conn.close()
@@ -177,14 +183,20 @@ def f_exec_sql(p_dbinfo,p_sqltext,p_option):
 
     if f_find_in_list(p_option,'STATUS'):
         #cursor.execute("select concat(upper(left(variable_name,1)),substring(lower(variable_name),2,(length(variable_name)-1))) var_name,variable_value var_value from INFORMATION_SCHEMA.SESSION_STATUS where variable_name in('"+"','".join(tuple(SES_STATUS_ITEM))+"') order by 1")
-        cursor.execute("select concat(upper(left(variable_name,1)),substring(lower(variable_name),2,(length(variable_name)-1))) var_name,variable_value var_value from INFORMATION_SCHEMA.SESSION_STATUS order by 1")
+        try:
+            cursor.execute("select concat(upper(left(variable_name,1)),substring(lower(variable_name),2,(length(variable_name)-1))) var_name,variable_value var_value from INFORMATION_SCHEMA.SESSION_STATUS order by 1")
+        except:
+            cursor.execute("select concat(upper(left(variable_name,1)),substring(lower(variable_name),2,(length(variable_name)-1))) var_name,variable_value var_value from performance_schema.session_status order by 1")
         records = cursor.fetchall()
         results['BEFORE_STATUS']=dict(records)
 
     cursor.execute(p_sqltext)
 
     if f_find_in_list(p_option,'STATUS'):
-        cursor.execute("select concat(upper(left(variable_name,1)),substring(lower(variable_name),2,(length(variable_name)-1))) var_name,variable_value var_value from INFORMATION_SCHEMA.SESSION_STATUS order by 1")
+        try:
+            cursor.execute("select concat(upper(left(variable_name,1)),substring(lower(variable_name),2,(length(variable_name)-1))) var_name,variable_value var_value from INFORMATION_SCHEMA.SESSION_STATUS order by 1")
+        except:
+            cursor.execute("select concat(upper(left(variable_name,1)),substring(lower(variable_name),2,(length(variable_name)-1))) var_name,variable_value var_value from performance_schema.session_status order by 1")
         records = cursor.fetchall()
         results['AFTER_STATUS']=dict(records)
 
