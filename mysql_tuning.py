@@ -73,7 +73,7 @@ def print_table(p_title_list,p_data_list,p_align=[]):
     print x
 
 def is_subselect(parsed):
-    if not parsed.is_group():
+    if not parsed.is_group:
         return False
     for item in parsed.tokens:
         if item.ttype is DML and item.value.upper() == 'SELECT':
