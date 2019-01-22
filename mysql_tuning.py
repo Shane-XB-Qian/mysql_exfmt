@@ -70,7 +70,7 @@ def print_table(p_title_list, p_data_list, p_align=[]):
             pass
 
     for rec in p_data_list:
-        if not isinstance(rec, 'list'):
+        if not isinstance(rec, list):
             rec = list(rec)
         x.add_row(rec)
     print x
