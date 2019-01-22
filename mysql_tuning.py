@@ -349,6 +349,8 @@ def f_get_mysql_version(p_dbinfo):
 def f_print_title(p_dbinfo,p_mysql_version,p_sqltext):
     print
     print '*'*100
+    print '*','MySQL SQL exfmt Tools (by shane.xb.qian)'.center(96),'*'
+    print '*','- based on :'.center(96),'*'
     print '*','MySQL SQL Tuning Tools v2.0 (by hanfeng)'.center(96),'*'
     print '*'*100
     print 

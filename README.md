@@ -1,3 +1,16 @@
+                             MySQL SQL exfmt Tools (by shane.xb.qian)
+                                           - based on :
+                             MySQL SQL Tuning Tools v2.0 (by hanfeng)
+
+## Here is going to :
+* support python3
+* add some usage
+* fix some bug
+
+## Below is the original readme :
+
+---
+
 #### 该程序可以方便DBA的日常SQL调优工作。其原理是将优化相关的信息，一次性提交给DBA，可快速定位问题。
 
 ### 1.准备条件
