@@ -3,9 +3,9 @@
                              MySQL SQL Tuning Tools v2.0 (by hanfeng)
 
 ## Here is going to :
-* support python3
-* add some usage
-* fix some bug
+* support python3  - done
+* add some usage   - wip
+* fix some bug     - wip
 
 ## Below is the original readme :
 

@@ -1,10 +1,10 @@
 #!/usr/local/bin/python
 
-import ConfigParser
+import configparser
 import datetime
 import getopt
 # import pprint
-import string
+# import string
 import sys
 from warnings import filterwarnings
 
@@ -73,7 +73,7 @@ def print_table(p_title_list, p_data_list, p_align=[]):
         if not isinstance(rec, list):
             rec = list(rec)
         x.add_row(rec)
-    print x
+    print(x)
 
 
 def is_subselect(parsed):
@@ -130,7 +130,7 @@ def f_find_in_list(myList, value):
 
 
 def f_get_parm(p_dbinfo):
-    conn = MySQLdb.connect(host=p_dbinfo[0], port=string.atoi(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
+    conn = MySQLdb.connect(host=p_dbinfo[0], port=int(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
     cursor = conn.cursor()
     try:
         cursor.execute("select lower(variable_name),variable_value from INFORMATION_SCHEMA.GLOBAL_VARIABLES where upper(variable_name) in ('" + "','".join(list(SYS_PARM_FILTER)) + "') order by variable_name")
@@ -143,26 +143,26 @@ def f_get_parm(p_dbinfo):
 
 
 def f_print_parm(p_parm_result):
-    print "\033[1;31;40m%s\033[0m" % "===== SYSTEM PARAMETER ====="
+    print("\033[1;31;40m%s\033[0m" % "===== SYSTEM PARAMETER =====")
     v_data = []
     for i in range(0, len(p_parm_result)):
         if 'size' in p_parm_result[i][0]:
-            if string.atoi(p_parm_result[i][1]) >= 1024 * 1024 * 1024:
-                v_data.append([p_parm_result[i][0], str(round(string.atoi(p_parm_result[i][1]) / 1024 / 1024 / 1024, 2)) + ' G'])
-            elif string.atoi(p_parm_result[i][1]) >= 1024 * 1024:
-                v_data.append([p_parm_result[i][0], str(round(string.atoi(p_parm_result[i][1]) / 1024 / 1024, 2)) + ' M'])
-            elif string.atoi(p_parm_result[i][1]) >= 1024:
-                v_data.append([p_parm_result[i][0], str(round(string.atoi(p_parm_result[i][1]) / 1024, 2)) + ' K'])
+            if int(p_parm_result[i][1]) >= 1024 * 1024 * 1024:
+                v_data.append([p_parm_result[i][0], str(round(int(p_parm_result[i][1]) / 1024 / 1024 / 1024, 2)) + ' G'])
+            elif int(p_parm_result[i][1]) >= 1024 * 1024:
+                v_data.append([p_parm_result[i][0], str(round(int(p_parm_result[i][1]) / 1024 / 1024, 2)) + ' M'])
+            elif int(p_parm_result[i][1]) >= 1024:
+                v_data.append([p_parm_result[i][0], str(round(int(p_parm_result[i][1]) / 1024, 2)) + ' K'])
             else:
                 v_data.append([p_parm_result[i][0], p_parm_result[i][1] + ' B'])
         else:
             pass
     print_table(['parameter_name', 'value'], v_data, ['l', 'r'])
-    print
+    print()
 
 
 def f_get_optimizer_switch(p_dbinfo):
-    conn = MySQLdb.connect(host=p_dbinfo[0], port=string.atoi(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
+    conn = MySQLdb.connect(host=p_dbinfo[0], port=int(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
     cursor = conn.cursor()
     try:
         cursor.execute("select variable_value from INFORMATION_SCHEMA.GLOBAL_VARIABLES where upper(variable_name)='OPTIMIZER_SWITCH'")
@@ -178,14 +178,14 @@ def f_get_optimizer_switch(p_dbinfo):
 
 
 def f_print_optimizer_switch(p_optimizer_switch_result):
-    print "\033[1;31;40m%s\033[0m" % "===== OPTIMIZER SWITCH ====="
+    print("\033[1;31;40m%s\033[0m" % "===== OPTIMIZER SWITCH =====")
     print_table(['switch_name', 'value'], p_optimizer_switch_result, ['l', 'r'])
-    print
+    print()
 
 
 def f_exec_sql(p_dbinfo, p_sqltext, p_option):
     results = {}
-    conn = MySQLdb.connect(host=p_dbinfo[0], port=string.atoi(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
+    conn = MySQLdb.connect(host=p_dbinfo[0], port=int(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
     cursor = conn.cursor()
 
     if f_find_in_list(p_option, 'PROFILING'):
@@ -236,37 +236,37 @@ def f_calc_status(p_before_status, p_after_status):
 
 
 def f_print_status(p_status_data):
-    print "\033[1;31;40m%s\033[0m" % "===== SESSION STATUS (DIFFERENT) ====="
+    print("\033[1;31;40m%s\033[0m" % "===== SESSION STATUS (DIFFERENT) =====")
     print_table(['status_name', 'before', 'after', 'diff'], p_status_data, ['l', 'r', 'r', 'r'])
-    print
+    print()
 
 
 def f_print_time(p_starttime, p_endtime):
-    print "\033[1;31;40m%s\033[0m" % "===== EXECUTE TIME ====="
-    print timediff(p_starttime, p_endtime)
-    print
+    print("\033[1;31;40m%s\033[0m" % "===== EXECUTE TIME =====")
+    print(timediff(p_starttime, p_endtime))
+    print()
 
 
 def f_print_profiling(p_profiling_detail, p_profiling_summary):
-    print "\033[1;31;40m%s\033[0m" % "===== SQL PROFILING(DETAIL)====="
+    print("\033[1;31;40m%s\033[0m" % "===== SQL PROFILING(DETAIL)=====")
     print_table(['state', 'duration', 'cpu_user', 'cpu_sys', 'bk_in', 'bk_out', 'msg_s', 'msg_r', 'p_f_ma', 'p_f_mi', 'swaps'], p_profiling_detail, ['l', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r'])
-    print 'bk_in:   block_ops_in'
-    print 'bk_out:  block_ops_out'
-    print 'msg_s:   message sent'
-    print 'msg_r:   message received'
-    print 'p_f_ma:  page_faults_major'
-    print 'p_f_mi:  page_faults_minor'
-    print
+    print('bk_in:   block_ops_in')
+    print('bk_out:  block_ops_out')
+    print('msg_s:   message sent')
+    print('msg_r:   message received')
+    print('p_f_ma:  page_faults_major')
+    print('p_f_mi:  page_faults_minor')
+    print()
 
-    print "\033[1;31;40m%s\033[0m" % "===== SQL PROFILING(SUMMARY)====="
+    print("\033[1;31;40m%s\033[0m" % "===== SQL PROFILING(SUMMARY)=====")
     print_table(['state', 'total_r', 'pct_r', 'calls', 'r/call'], p_profiling_summary, ['l', 'r', 'r', 'r', 'r'])
-    print
+    print()
 
 
 def f_get_sqlplan(p_dbinfo, p_sqltext):
     results = {}
 
-    db = MySQLdb.connect(host=p_dbinfo[0], port=string.atoi(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
+    db = MySQLdb.connect(host=p_dbinfo[0], port=int(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
     cursor = db.cursor()
     cursor.execute("explain extended " + p_sqltext)
     records = cursor.fetchall()
@@ -287,23 +287,23 @@ def f_null(p_value):
 def f_print_sqlplan(p_sqlplan, p_warning, p_mysql_version):
     # plan_title = ('id', 'select_type', 'table', 'type', 'possible_keys', 'key', 'key_len', 'ref', 'rows', 'filtered', 'Extra')
 
-    print "\033[1;31;40m%s\033[0m" % "===== SQL PLAN ====="
+    print("\033[1;31;40m%s\033[0m" % "===== SQL PLAN =====")
 
     if p_mysql_version.split('.')[1] == '7':  # 5.7
         print_table(['id', 'select_type', 'table', 'partitions', 'type', 'possible_keys', 'key', 'key_len', 'ref', 'rows', 'filtered', 'Extra'], p_sqlplan, ['r', 'l', 'l', 'l', 'l', 'l', 'l', 'l', 'l', 'r', 'r', 'l'])
     else:
         print_table(['id', 'select_type', 'table', 'type', 'possible_keys', 'key', 'key_len', 'ref', 'rows', 'filtered', 'Extra'], p_sqlplan, ['r', 'l', 'l', 'l', 'l', 'l', 'l', 'l', 'r', 'r', 'l'])
-    print
+    print()
 
-    print "\033[1;31;40m%s\033[0m" % "===== OPTIMIZER REWRITE SQL ====="
+    print("\033[1;31;40m%s\033[0m" % "===== OPTIMIZER REWRITE SQL =====")
     for row in p_warning:
-        print sqlparse.format(row[2], reindent=True, keyword_case='upper', strip_comments=True)
-    print
+        print(sqlparse.format(row[2], reindent=True, keyword_case='upper', strip_comments=True))
+    print()
 
 
 def f_get_table(p_dbinfo, p_sqltext):
     r_tables = []
-    db = MySQLdb.connect(host=p_dbinfo[0], port=string.atoi(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
+    db = MySQLdb.connect(host=p_dbinfo[0], port=int(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
     cursor = db.cursor()
     cursor.execute("explain " + p_sqltext)
     rows = cursor.fetchall()
@@ -321,7 +321,7 @@ def f_get_table(p_dbinfo, p_sqltext):
 
 
 def f_get_tableinfo(p_dbinfo, p_tablename):
-    db = MySQLdb.connect(host=p_dbinfo[0], port=string.atoi(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
+    db = MySQLdb.connect(host=p_dbinfo[0], port=int(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
     cursor = db.cursor()
     # cursor.execute("select table_name,engine,row_format as format,table_rows,avg_row_length as avg_row,round((data_length+index_length)/1024/1024,2) as total_mb,round((data_length)/1024/1024,2) as data_mb,round((index_length)/1024/1024,2) as index_mb from information_schema.tables where table_schema='"+p_dbinfo[4]+"' and table_name='"+p_tablename+"'")
     cursor.execute("select a.table_name,a.engine,a.row_format as format,a.table_rows,a.avg_row_length as avg_row,round((a.data_length+a.index_length)/1024/1024,2) as total_mb,round((a.data_length)/1024/1024,2) as data_mb,round((a.index_length)/1024/1024,2) as index_mb,a.create_time,b.last_update last_analyzed from information_schema.tables a ,mysql.innodb_table_stats b where a.table_schema=b.database_name and a.table_name=b.table_name and a.table_schema='" + p_dbinfo[4] + "' and a.table_name='" + p_tablename + "'")
@@ -336,7 +336,7 @@ def f_print_tableinfo(p_table_stat):
 
 
 def f_get_indexinfo(p_dbinfo, p_tablename):
-    db = MySQLdb.connect(host=p_dbinfo[0], port=string.atoi(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
+    db = MySQLdb.connect(host=p_dbinfo[0], port=int(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
     cursor = db.cursor()
     cursor.execute("select index_name,non_unique,seq_in_index,column_name,collation,cardinality,nullable,index_type from information_schema.statistics where table_schema='" + p_dbinfo[4] + "' and table_name='" + p_tablename + "' order by 1,3")
     records = cursor.fetchall()
@@ -351,7 +351,7 @@ def f_print_indexinfo(p_index_info):
 
 
 def f_get_indexstat(p_dbinfo, p_tablename):
-    db = MySQLdb.connect(host=p_dbinfo[0], port=string.atoi(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
+    db = MySQLdb.connect(host=p_dbinfo[0], port=int(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
     cursor = db.cursor()
     cursor.execute("select index_name,last_update last_analyzed,stat_name,stat_value,sample_size,stat_description from mysql.innodb_index_stats a where database_name='" + p_dbinfo[4] + "' and table_name='" + p_tablename + "' order by index_name,stat_name")
     records = cursor.fetchall()
@@ -366,7 +366,7 @@ def f_print_indexstat(p_index_stat):
 
 
 def f_get_mysql_version(p_dbinfo):
-    db = MySQLdb.connect(host=p_dbinfo[0], port=string.atoi(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
+    db = MySQLdb.connect(host=p_dbinfo[0], port=int(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
     cursor = db.cursor()
     cursor.execute("select @@version")
     records = cursor.fetchall()
@@ -376,21 +376,21 @@ def f_get_mysql_version(p_dbinfo):
 
 
 def f_print_title(p_dbinfo, p_mysql_version, p_sqltext):
-    print
-    print '*' * 100
-    print '*', 'MySQL SQL exfmt Tools (by shane.xb.qian)'.center(96), '*'
-    print '*', '- based on :'.center(96), '*'
-    print '*', 'MySQL SQL Tuning Tools v2.0 (by hanfeng)'.center(96), '*'
-    print '*' * 100
-    print
+    print()
+    print('*' * 100)
+    print('*', 'MySQL SQL exfmt Tools (by shane.xb.qian)'.center(96), '*')
+    print('*', '- based on :'.center(96), '*')
+    print('*', 'MySQL SQL Tuning Tools v2.0 (by hanfeng)'.center(96), '*')
+    print('*' * 100)
+    print()
 
-    print "\033[1;31;40m%s\033[0m" % "===== BASIC INFORMATION ====="
+    print("\033[1;31;40m%s\033[0m" % "===== BASIC INFORMATION =====")
     print_table(['server_ip', 'server_port', 'user_name', 'db_name', 'db_version'], [[p_dbinfo[0], p_dbinfo[1], p_dbinfo[2], p_dbinfo[4], p_mysql_version]])
-    print
+    print()
 
-    print "\033[1;31;40m%s\033[0m" % "===== ORIGINAL SQL TEXT ====="
-    print sqlparse.format(p_sqltext, reindent=True, keyword_case='upper')
-    print
+    print("\033[1;31;40m%s\033[0m" % "===== ORIGINAL SQL TEXT =====")
+    print(sqlparse.format(p_sqltext, reindent=True, keyword_case='upper'))
+    print()
 
 
 def timediff(timestart, timestop):
@@ -436,8 +436,8 @@ if __name__ == "__main__":
         usage()
         sys.exit(1)
 
-    config = ConfigParser.ConfigParser()
-    config.readfp(open(config_file, "rb"))
+    config = configparser.ConfigParser()
+    config.read_file(open(config_file, "rt"))
     dbinfo[0] = config.get("database", "server_ip")
     dbinfo[1] = config.get("database", "server_port")
     dbinfo[2] = config.get("database", "db_user")
@@ -459,12 +459,12 @@ if __name__ == "__main__":
         f_print_sqlplan(sqlplan_result['SQLPLAN'], sqlplan_result['WARNING'], mysql_version)
 
     if config.get("option", "obj_stat") == 'ON':
-        print "\033[1;31;40m%s\033[0m" % "===== OBJECT STATISTICS ====="
+        print("\033[1;31;40m%s\033[0m" % "===== OBJECT STATISTICS =====")
         for table_name in extract_tables(sqltext):
             f_print_tableinfo(f_get_tableinfo(dbinfo, table_name))
             f_print_indexinfo(f_get_indexinfo(dbinfo, table_name))
             f_print_indexstat(f_get_indexstat(dbinfo, table_name))
-        print
+        print()
 
     if config.get("option", "ses_status") == 'ON':
         option.append('STATUS')
