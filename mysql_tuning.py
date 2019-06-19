@@ -1,4 +1,15 @@
-#!/usr/local/bin/python
+#!/usr/bin/python3
+
+# ------------------------------------------------------------------------
+# author      : shane.xb.qian
+# createdat   : Wednesday, June 19, 2019 PM06:50:11 CST @ China
+# ------------------------------------------------------------------------
+# description : - based on MySQL SQL Tuning Tools v2.0 (by hanfeng)
+#             : + modified to support py3
+#             : + and added some usage
+#             : + and fixed some bugs
+#             : + and sth WIP ..
+# ------------------------------------------------------------------------
 
 import configparser
 import datetime
