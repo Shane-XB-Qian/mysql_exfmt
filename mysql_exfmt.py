@@ -279,7 +279,9 @@ def f_get_sqlplan(p_dbinfo, p_sqltext):
 
     db = MySQLdb.connect(host=p_dbinfo[0], port=int(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
     cursor = db.cursor()
-    cursor.execute("explain extended " + p_sqltext)
+    # 'EXTENDED' IS deprecated.
+    # # cursor.execute("explain extended " + p_sqltext)
+    cursor.execute("explain " + p_sqltext)
     records = cursor.fetchall()
     results['SQLPLAN'] = records
     cursor.execute("show warnings")
