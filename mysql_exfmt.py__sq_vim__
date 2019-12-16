@@ -1,0 +1,2 @@
+term python3 mysql_exfmt.py -p _test_shane_.ini -s "select user from mysql.user"
+# vg_
