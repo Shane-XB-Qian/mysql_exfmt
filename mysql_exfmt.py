@@ -421,9 +421,16 @@ def timediff(timestart, timestop):
     return retstr
 
 
+def readfs(fsname):
+    if not fsname.strip():
+        return ""
+    with open(fsname) as f:
+        return ''.join(f.readlines())
+
+
 def usage():
     print("""usage:
-    %s -p [config_ini] -s [sql]
+    %s -p [config_ini] { -s [sql] | -f [sql_file] }
     """ % sys.argv[0])
 
 
@@ -438,12 +445,14 @@ if __name__ == "__main__":
     config_file = ""
     mysql_version = ""
 
-    opts, args = getopt.getopt(sys.argv[1:], "p:s:")
+    opts, args = getopt.getopt(sys.argv[1:], "p:s:f:")
     for o, v in opts:
         if o == "-p":
             config_file = v
         elif o == "-s":
             sqltext = v
+        elif o == "-f":
+            sqltext = readfs(v)
 
     if config_file == "" or sqltext == "":
         usage()

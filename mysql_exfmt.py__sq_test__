@@ -1,1 +1,2 @@
+-p _test_shane_.ini -f _test_shane_.sql
 -p _test_shane_.ini -s "select user from mysql.user"
