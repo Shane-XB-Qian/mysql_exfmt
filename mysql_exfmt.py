@@ -203,6 +203,7 @@ def f_exec_sql(p_dbinfo, p_sqltext, p_option):
         cursor.execute("set profiling=1")
         cursor.execute("select ifnull(max(query_id),0) from INFORMATION_SCHEMA.PROFILING")
         records = cursor.fetchall()
+        # FIXME: looks such query_id was not reliable ..
         query_id = records[0][0] + 2  # skip next sql
 
     if f_find_in_list(p_option, 'STATUS'):
@@ -240,6 +241,7 @@ def f_exec_sql(p_dbinfo, p_sqltext, p_option):
 
 def f_calc_status(p_before_status, p_after_status):
     results = []
+    # XXX: where is e.g. 'last_query_cost' or meaningful ??
     for key in sorted(p_before_status.keys()):
         if p_before_status[key] != p_after_status[key]:
             results.append([key, p_before_status[key], p_after_status[key], str(float(p_after_status[key]) - float(p_before_status[key]))])
@@ -447,6 +449,7 @@ if __name__ == "__main__":
 
     opts, args = getopt.getopt(sys.argv[1:], "p:s:f:")
     for o, v in opts:
+        # XXX: socket ?
         if o == "-p":
             config_file = v
         elif o == "-s":
@@ -475,6 +478,8 @@ if __name__ == "__main__":
         optimizer_switch_result = f_get_optimizer_switch(dbinfo)
         f_print_parm(parm_result)
         f_print_optimizer_switch(optimizer_switch_result)
+
+    # TODO: resort output order ?
 
     if config.get("option", "sql_plan") == 'ON':
         sqlplan_result = f_get_sqlplan(dbinfo, sqltext)
@@ -505,4 +510,8 @@ if __name__ == "__main__":
         if config.get("option", "sql_profile") == 'ON':
             f_print_profiling(exec_result['PROFILING_DETAIL'], exec_result['PROFILING_SUMMARY'])
 
+        # XXX: hit rate ?
+
         f_print_time(starttime, endtime)
+
+        # TODO: update readme ..
