@@ -4,11 +4,7 @@
 # author      : shane.xb.qian
 # createdat   : Wednesday, June 19, 2019 PM06:50:11 CST @ China
 # ------------------------------------------------------------------------
-# description : - based on MySQL SQL Tuning Tools v2.0 (by hanfeng)
-#             : + modified to support py3
-#             : + and added some usage
-#             : + and fixed some bugs
-#             : + and sth WIP ..
+# description : fmt mysql sql explain output with others info collection.
 # ------------------------------------------------------------------------
 
 import configparser
@@ -26,6 +22,11 @@ from sqlparse.sql import Identifier, IdentifierList
 from sqlparse.tokens import DML, Keyword
 
 filterwarnings('ignore', category=MySQLdb.Warning)
+
+if sys.version > '3':
+    PY3PLUS = True
+else:
+    PY3PLUS = False
 
 SYS_PARM_FILTER = (
     'BINLOG_CACHE_SIZE',
@@ -393,9 +394,7 @@ def f_get_mysql_version(p_dbinfo):
 def f_print_title(p_dbinfo, p_mysql_version, p_sqltext):
     print()
     print('*' * 100)
-    print('*', 'MySQL SQL exfmt Tools (by shane.xb.qian)'.center(96), '*')
-    print('*', '- based on :'.center(96), '*')
-    print('*', 'MySQL SQL Tuning Tools v2.0 (by hanfeng)'.center(96), '*')
+    print('*', 'thinks for using - mysql sql exfmt tool - shane.xb.qian'.center(96), '*')
     print('*' * 100)
     print()
 
@@ -437,6 +436,10 @@ def usage():
 
 
 if __name__ == "__main__":
+    if not PY3PLUS:
+        print("\033[1;31;40m%s\033[0m" % "ERR: this tool was recommended to use python3 !")
+        sys.exit(2)
+
     if len(sys.argv) != 5:
         usage()
         sys.exit(1)
