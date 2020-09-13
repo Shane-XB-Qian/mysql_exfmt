@@ -1,42 +1,29 @@
-                             MySQL SQL exfmt Tools (by shane.xb.qian)
-                                           - based on :
-                             MySQL SQL Tuning Tools v2.0 (by hanfeng)
+本工具可以方便DBA的日常SQL调优工作。
 
-## Here is going to :
-* support python3  - done
-* add some usage   - wip
-* fix some bug     - wip
-
-## Below is the original readme :
-
----
-
-#### 该程序可以方便DBA的日常SQL调优工作。其原理是将优化相关的信息，一次性提交给DBA，可快速定位问题。
+其目的是将优化相关的信息，一次性收集并格式化，便于快速定位问题。
 
 ### 1.准备条件
-#### 模块
-  -  模块 - MySQLDB  
-  -  模块 - sqlparse  
-  -  模块 - prettytable    
-  
-#### 版本  
-  Python版本 >= 2.6 (3.x版本没测试)    
-#### 授权    
 
-      grant all on *.* to testuser@'localhost' identified by 'testpwd';    
-#### 参数    
-  在5.7版本中，需要打开show_compatibility_56参数。    
+#### 版本
+  原版本主要是python2运行在mysql_v56上的，目前迁移至python3及兼容mysql_v57。
+
+#### 授权
+  grant all on *.* to testuser@'localhost' identified by 'testpwd';
+
+#### 参数
+  ~~在5.7版本中，需要打开show_compatibility_56参数: set global show_compatibility_56=on;~~
   
-      set global show_compatibility_56=on;    
-  
+  // 已自动适配这个兼容性，或并不需要打开这个设置。
+
 ### 2.调用方法
-python mysql_tuning.py -p tuning_sql.ini -s 'select d.dname ,e.empno from big_dep...'    
-#### 参数说明     
-     -p  指定配置文件名称，文件格式及含义参加下面说明。   
-     -s  指定SQL语句。    
-#### 配置文件    
-  文本格式，共分两节信息。分别是[database]描述数据库连接信息，[option]运行配置信息。  
-  
+
+  python3 ./mysql_tuning.py
+
+  // 直接无参的运行会打印‘usage’帮助信息，可直接‘-f’从文件读入或‘-s’直接输入‘sql’。
+
+#### 配置文件
+  文本格式，共分两节信息。分别是[database]描述数据库连接信息，[option]运行配置信息。
+
       [database]
       server_ip   = 127.0.0.1
       server_port = 3306
@@ -49,18 +36,21 @@ python mysql_tuning.py -p tuning_sql.ini -s 'select d.dname ,e.empno from big_de
       obj_stat    = ON	//是否显示相关对象(表、索引)统计信息
       ses_status  = ON	//是否显示运行前后状态信息(激活后会真实执行SQL)
       sql_profile = ON	//是否显示PROFILE跟踪信息(激活后会真实执行SQL)
-### 3.输出说明    
-#### 标题部分    
-   包含运行数据库的地址信息及数据版本信息。    
-   
+
+### 3.输出说明
+
+#### 标题部分
+   包含运行数据库的地址信息及数据版本信息。
+
         ===== BASIC INFORMATION =====
         +-----------+-------------+-----------+---------+------------+
         | server_ip | server_port | user_name | db_name | db_version |
         +-----------+-------------+-----------+---------+------------+
         | localhost |     3501    |  testuser |   test  |   5.7.12   |
         +-----------+-------------+-----------+---------+------------+
+
 #### 原始SQL
-用户执行输入的SQL，这部分主要是为了后续对比重写SQL时使用。
+  用户执行输入的SQL，这部分主要是为了后续对比重写SQL时使用。
 
         ===== ORIGINAL SQL TEXT =====
         SELECT d.dname,
@@ -68,8 +58,9 @@ python mysql_tuning.py -p tuning_sql.ini -s 'select d.dname ,e.empno from big_de
         FROM big_dept d,
              big_emp e
         WHERE d.deptno=e.deptno LIMIT 10
+
 #### 系统级参数
-脚本选择显示了部分与SQL性能相关的参数。
+  脚本选择显示了部分与SQL性能相关的参数。
 
     ===== SYSTEM PARAMETER =====
     +-------------------------+-----------------+
@@ -92,7 +83,7 @@ python mysql_tuning.py -p tuning_sql.ini -s 'select d.dname ,e.empno from big_de
     | thread_cache_size       |            20 B |
     | tmp_table_size          |           1.0 G |
     +-------------------------+-----------------+
-    
+
 #### 优化器开关
 
     ===== OPTIMIZER SWITCH =====
@@ -121,7 +112,7 @@ python mysql_tuning.py -p tuning_sql.ini -s 'select d.dname ,e.empno from big_de
     +-------------------------------------+-------+
 
 #### 执行计划
-就是调用explain extended的输出结果。如果结果过长，可能出现显示串行的问题(暂时未解决)。
+  就是调用explain extended的输出结果。如果结果过长，可能出现显示串行的问题(暂时未解决)。
 
     ===== SQL PLAN =====
     +----+-------------+-------+------------+-------+---------------+----------------+---------+---------------+------+----------+-------------+
@@ -132,7 +123,7 @@ python mysql_tuning.py -p tuning_sql.ini -s 'select d.dname ,e.empno from big_de
     +----+-------------+-------+------------+-------+---------------+----------------+---------+---------------+------+----------+-------------+
 
 #### 优化器改写后的SQL
-通过这里可判断优化器是否对SQL进行了某种优化(例如子查询的处理)。
+  通过这里可判断优化器是否对SQL进行了某种优化(例如子查询的处理)。
 
     ===== OPTIMIZER REWRITE SQL =====
     SELECT `test`.`d`.`dname` AS `dname`,
@@ -140,8 +131,9 @@ python mysql_tuning.py -p tuning_sql.ini -s 'select d.dname ,e.empno from big_de
     FROM `test`.`big_dept` `d`
     JOIN `test`.`big_emp` `e`
     WHERE (`test`.`e`.`deptno` = `test`.`d`.`deptno`) LIMIT 10
+
 #### 统计信息
-相关对象的统计信息(表、索引)。在SQL语句中所有涉及到的表及其索引的统计信息都会在这里显示出来。
+  相关对象的统计信息(表、索引)。在SQL语句中所有涉及到的表及其索引的统计信息都会在这里显示出来。
 
     ===== OBJECT STATISTICS =====
     +------------+--------+---------+------------+---------+----------+---------+----------+
@@ -182,8 +174,9 @@ python mysql_tuning.py -p tuning_sql.ini -s 'select d.dname ,e.empno from big_de
     | idx_sal    | 2017-01-13 01:18:55 | n_leaf_pages |       1373 |        None | Number of leaf pages in the index |
     | idx_sal    | 2017-01-13 01:18:55 | size         |       1731 |        None | Number of pages in the index      |
     +------------+---------------------+--------------+------------+-------------+-----------------------------------+
+
 #### 运行状态信息
-在会话级别对比了执行前后的状态(SHOW STATUS)，并将出现变化的部分显示出来。需要注意的是，因为收集状态数据是采用SELECT方式，会造成个别指标的误差(例如Com_select)。
+  在会话级别对比了执行前后的状态(SHOW STATUS)，并将出现变化的部分显示出来。需要注意的是，因为收集状态数据是采用SELECT方式，会造成个别指标的误差(例如Com_select)。
 
     ===== SESSION STATUS (DIFFERENT) =====
     +----------------------------------+-----------+---------------+---------------+
@@ -225,7 +218,7 @@ python mysql_tuning.py -p tuning_sql.ini -s 'select d.dname ,e.empno from big_de
     +----------------------------------+-----------+---------------+---------------+
 
 #### PROFILE详细信息
-调用SHOW PROFILE得到的详细信息。
+  调用SHOW PROFILE得到的详细信息。
 
     ===== SQL PROFILING(DETAIL)=====
     +----------------+----------+----------+----------+-------+--------+-------+-------+--------+--------+-------+
@@ -243,9 +236,9 @@ python mysql_tuning.py -p tuning_sql.ini -s 'select d.dname ,e.empno from big_de
     msg_r:   message received
     p_f_ma:  page_faults_major
     p_f_mi:  page_faults_minor
- 
+
 #### PROFILE汇总信息
-根据PROFILE的资源消耗情况，显示不同阶段消耗对比情况(TOP N)，直观显示"瓶颈"所在。
+  根据PROFILE的资源消耗情况，显示不同阶段消耗对比情况(TOP N)，直观显示"瓶颈"所在。
 
     ===== SQL PROFILING(SUMMARY)=====
     +----------------+----------+-------+-------+--------------+
@@ -257,9 +250,14 @@ python mysql_tuning.py -p tuning_sql.ini -s 'select d.dname ,e.empno from big_de
     | query end      | 0.000006 |  3.49 |     1 | 0.0000060000 |
     | closing tables | 0.000004 |  2.33 |     1 | 0.0000040000 |
     +----------------+----------+-------+-------+--------------+
- 
+
 #### 执行时长
-实际执行时长。
+  实际执行时长。
 
     ===== EXECUTE TIME =====
-    0 day 0 hour 0 minute 0 second 162 microsecond 
+    0 day 0 hour 0 minute 0 second 162 microsecond
+
+## Author
+  - mysql_exfmt.py mig/upd by shane.xb.qian
+  - based on mysql_tuning.py v2.0 by hanfeng
+
