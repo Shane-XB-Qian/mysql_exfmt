@@ -248,6 +248,21 @@ def f_exec_sql(p_dbinfo, p_sqltext, p_option):
     conn.close()
     return results
 
+def f_print_hitrate(p_dbinfo):
+    conn = MySQLdb.connect(host=p_dbinfo[0], port=int(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
+    cursor = conn.cursor()
+    # show engine innodb status
+    cursor.execute("""
+    SELECT concat(round(P1.variable_value / (P2.variable_value + P1.variable_value), 4)*100, '%'), P1.variable_value, P2.variable_value
+    FROM performance_schema.global_status P1, performance_schema.global_status P2
+    WHERE P1.variable_name = 'innodb_buffer_pool_read_requests' AND P2.variable_name = 'innodb_buffer_pool_reads'
+    """)
+    # fromdual.com/innodb-variables-and-status-explained
+    print("\033[1;31;40m%s\033[0m" % "===== HIT RATE =====")
+    print_table(['hit', 'reqs', 'reads'], cursor.fetchall(), ['l', 'r', 'r'])
+    print()
+    cursor.close()
+    conn.close()
 
 def f_calc_status(p_before_status, p_after_status):
     results = []
@@ -533,8 +548,6 @@ if __name__ == "__main__":
             f_print_profiling(exec_result['PROFILING_DETAIL'], exec_result['PROFILING_SUMMARY'])
             exec_title_add = exec_title_add + "ProfileOn" + "+"
 
-        # XXX: hit rate ?
-
         f_print_time(exec_title_add, starttime, endtime)
 
-        # TODO: update readme ..
+    f_print_hitrate(dbinfo)
