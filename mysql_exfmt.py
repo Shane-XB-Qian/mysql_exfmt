@@ -200,13 +200,6 @@ def f_exec_sql(p_dbinfo, p_sqltext, p_option):
     conn = MySQLdb.connect(host=p_dbinfo[0], port=int(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
     cursor = conn.cursor()
 
-    if f_find_in_list(p_option, 'PROFILING'):
-        cursor.execute("set profiling=1")
-        cursor.execute("select ifnull(max(query_id),0) from INFORMATION_SCHEMA.PROFILING")
-        records = cursor.fetchall()
-        # FIXME: looks such query_id was not reliable ..
-        query_id = records[0][0] + 2  # skip next sql
-
     if f_find_in_list(p_option, 'STATUS'):
         # cursor.execute("select concat(upper(left(variable_name,1)),substring(lower(variable_name),2,(length(variable_name)-1))) var_name,variable_value var_value from INFORMATION_SCHEMA.SESSION_STATUS where variable_name in('"+"','".join(tuple(SES_STATUS_ITEM))+"') order by 1")
         try:
@@ -216,9 +209,8 @@ def f_exec_sql(p_dbinfo, p_sqltext, p_option):
         records = cursor.fetchall()
         results['BEFORE_STATUS'] = dict(records)
 
-    cursor.execute(p_sqltext)
+        cursor.execute(p_sqltext)
 
-    if f_find_in_list(p_option, 'STATUS'):
         try:
             cursor.execute("select concat(upper(left(variable_name,1)),substring(lower(variable_name),2,(length(variable_name)-1))) var_name,variable_value var_value from INFORMATION_SCHEMA.SESSION_STATUS order by 1")
         except BaseException:
@@ -227,6 +219,19 @@ def f_exec_sql(p_dbinfo, p_sqltext, p_option):
         results['AFTER_STATUS'] = dict(records)
 
     if f_find_in_list(p_option, 'PROFILING'):
+        cursor.execute("set profiling=1")
+        cursor.execute("select ifnull(max(query_id),0) from INFORMATION_SCHEMA.PROFILING")
+        records = cursor.fetchall()
+        # sq: had to run 'p_sqltext' 2 times each for status and profile
+        # sq: if it enabled -otherwise 'query_id' looks was not reliable
+        query_id = records[0][0] + 2  # skip (cur) to next sql
+        # print("query_id:"+str(query_id))
+
+        cursor.execute(p_sqltext)
+        # cursor.execute("show profiles")
+        # print_table(["query_id", "duration", "query"], cursor.fetchall())
+        cursor.execute("set profiling=0")
+
         cursor.execute("select STATE,DURATION,CPU_USER,CPU_SYSTEM,BLOCK_OPS_IN,BLOCK_OPS_OUT ,MESSAGES_SENT ,MESSAGES_RECEIVED ,PAGE_FAULTS_MAJOR ,PAGE_FAULTS_MINOR ,SWAPS from INFORMATION_SCHEMA.PROFILING where query_id=" + str(query_id) + " order by seq")
         records = cursor.fetchall()
         results['PROFILING_DETAIL'] = records
@@ -255,8 +260,8 @@ def f_print_status(p_status_data):
     print()
 
 
-def f_print_time(p_starttime, p_endtime):
-    print("\033[1;31;40m%s\033[0m" % "===== EXECUTE TIME =====")
+def f_print_time(p_title_additional, p_starttime, p_endtime):
+    print("\033[1;31;40m%s\033[0m" % ("===== EXECUTE TIME (" + str.rstrip(p_title_additional, '+') + ") ====="))
     print(timediff(p_starttime, p_endtime))
     print()
 
@@ -503,18 +508,21 @@ if __name__ == "__main__":
         option.append('PROFILING')
 
     if config.get("option", "ses_status") == 'ON' or config.get("option", "sql_profile") == 'ON':
+        exec_title_add = ""
         starttime = datetime.datetime.now()
         exec_result = f_exec_sql(dbinfo, sqltext, option)
         endtime = datetime.datetime.now()
 
         if config.get("option", "ses_status") == 'ON':
             f_print_status(f_calc_status(exec_result['BEFORE_STATUS'], exec_result['AFTER_STATUS']))
+            exec_title_add = exec_title_add + "StatusOn" + "+"
 
         if config.get("option", "sql_profile") == 'ON':
             f_print_profiling(exec_result['PROFILING_DETAIL'], exec_result['PROFILING_SUMMARY'])
+            exec_title_add = exec_title_add + "ProfileOn" + "+"
 
         # XXX: hit rate ?
 
-        f_print_time(starttime, endtime)
+        f_print_time(exec_title_add, starttime, endtime)
 
         # TODO: update readme ..
