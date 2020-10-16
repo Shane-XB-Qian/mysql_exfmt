@@ -211,6 +211,9 @@ def f_exec_sql(p_dbinfo, p_sqltext, p_option):
         results['BEFORE_STATUS'] = dict(records)
 
         cursor.execute(p_sqltext)
+        cursor.execute("show status like 'Last_query_cost'")
+        records = cursor.fetchall()
+        results['LQC_STATUS'] = dict(records)
 
         try:
             cursor.execute("select concat(upper(left(variable_name,1)),substring(lower(variable_name),2,(length(variable_name)-1))) var_name,variable_value var_value from INFORMATION_SCHEMA.SESSION_STATUS order by 1")
@@ -248,7 +251,6 @@ def f_exec_sql(p_dbinfo, p_sqltext, p_option):
 
 def f_calc_status(p_before_status, p_after_status):
     results = []
-    # XXX: where is e.g. 'last_query_cost' or meaningful ??
     for key in sorted(p_before_status.keys()):
         if p_before_status[key] != p_after_status[key]:
             results.append([key, p_before_status[key], p_after_status[key], str(float(p_after_status[key]) - float(p_before_status[key]))])
@@ -258,6 +260,7 @@ def f_calc_status(p_before_status, p_after_status):
 def f_print_status(p_status_data):
     print("\033[1;31;40m%s\033[0m" % "===== SESSION STATUS (DIFFERENT) =====")
     print_table(['status_name', 'before', 'after', 'diff'], p_status_data, ['l', 'r', 'r', 'r'])
+    print(exec_result['LQC_STATUS'])
     print()
 
 
