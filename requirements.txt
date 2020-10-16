@@ -3,3 +3,4 @@
 mysqlclient==1.4.1
 sqlparse==0.3.0
 prettytable==0.7.2
+sql_metadata

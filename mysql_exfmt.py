@@ -17,6 +17,7 @@ from warnings import filterwarnings
 
 import MySQLdb
 import sqlparse
+import sql_metadata
 from prettytable import PrettyTable
 from sqlparse.sql import Identifier, IdentifierList
 from sqlparse.tokens import DML, Keyword
@@ -490,13 +491,20 @@ if __name__ == "__main__":
 
     f_print_orisql(sqltext)
 
+    # table_list = []
     if config.get("option", "sql_plan") == 'ON':
         sqlplan_result = f_get_sqlplan(dbinfo, sqltext)
         f_print_sqlplan(sqlplan_result['SQLPLAN'], sqlplan_result['WARNING'], mysql_version)
+        # table_list = set([ i[2] for i in sqlplan_result['SQLPLAN'] ])
 
     if config.get("option", "obj_stat") == 'ON':
         print("\033[1;31;40m%s\033[0m" % "===== OBJECT STATISTICS =====")
-        for table_name in extract_tables(sqltext):
+        # for table_name in table_list:
+        # sq: looks just alias tab name
+        # for table_name in extract_tables(sqltext):
+        # sq: from 'sqlparse extract_table_names.py'
+        for table_name in sql_metadata.get_query_tables(sqltext):
+        # sq: looks this is a little more accurate than others ..
             f_print_tableinfo(f_get_tableinfo(dbinfo, table_name))
             f_print_indexinfo(f_get_indexinfo(dbinfo, table_name))
             f_print_indexstat(f_get_indexstat(dbinfo, table_name))
