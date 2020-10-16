@@ -1,2 +1,4 @@
+-p _test_shane_.ini -s "select s.*, scc.* from student s join (select * from sc where sc.cid in ('01', '02')) scc on s.sid = scc.sid"
 -p _test_shane_.ini -f _test_shane_.sql
 -p _test_shane_.ini -s "select user from mysql.user"
+# -p _test_shane_.ini -s "select * from sys.processlist where conn_id=1"

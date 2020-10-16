@@ -284,7 +284,6 @@ def f_print_profiling(p_profiling_detail, p_profiling_summary):
 
 def f_get_sqlplan(p_dbinfo, p_sqltext):
     results = {}
-
     db = MySQLdb.connect(host=p_dbinfo[0], port=int(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
     cursor = db.cursor()
     # 'EXTENDED' IS deprecated.
@@ -396,7 +395,7 @@ def f_get_mysql_version(p_dbinfo):
     return records[0][0]
 
 
-def f_print_title(p_dbinfo, p_mysql_version, p_sqltext):
+def f_print_title(p_dbinfo, p_mysql_version):
     print()
     print('*' * 100)
     print('*', 'thinks for using - mysql sql exfmt tool - shane.xb.qian'.center(96), '*')
@@ -407,6 +406,8 @@ def f_print_title(p_dbinfo, p_mysql_version, p_sqltext):
     print_table(['server_ip', 'server_port', 'user_name', 'db_name', 'db_version'], [[p_dbinfo[0], p_dbinfo[1], p_dbinfo[2], p_dbinfo[4], p_mysql_version]])
     print()
 
+
+def f_print_orisql(p_sqltext):
     print("\033[1;31;40m%s\033[0m" % "===== ORIGINAL SQL TEXT =====")
     print(sqlparse.format(p_sqltext, reindent=True, keyword_case='upper'))
     print()
@@ -479,7 +480,7 @@ if __name__ == "__main__":
 
     mysql_version = f_get_mysql_version(dbinfo).split('-')[0]
 
-    f_print_title(dbinfo, mysql_version, sqltext)
+    f_print_title(dbinfo, mysql_version)
 
     if config.get("option", "sys_parm") == 'ON':
         parm_result = f_get_parm(dbinfo)
@@ -487,7 +488,7 @@ if __name__ == "__main__":
         f_print_parm(parm_result)
         f_print_optimizer_switch(optimizer_switch_result)
 
-    # TODO: resort output order ?
+    f_print_orisql(sqltext)
 
     if config.get("option", "sql_plan") == 'ON':
         sqlplan_result = f_get_sqlplan(dbinfo, sqltext)

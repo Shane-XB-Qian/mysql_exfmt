@@ -49,16 +49,6 @@
         | localhost |     3501    |  testuser |   test  |   5.7.12   |
         +-----------+-------------+-----------+---------+------------+
 
-#### 原始SQL
-  用户执行输入的SQL，这部分主要是为了后续对比重写SQL时使用。
-
-        ===== ORIGINAL SQL TEXT =====
-        SELECT d.dname,
-               e.empno
-        FROM big_dept d,
-             big_emp e
-        WHERE d.deptno=e.deptno LIMIT 10
-
 #### 系统级参数
   脚本选择显示了部分与SQL性能相关的参数。
 
@@ -111,8 +101,18 @@
     | derived_merge                       |    on |
     +-------------------------------------+-------+
 
+#### 原始SQL
+  用户执行输入的SQL，这部分主要是为了后续对比重写SQL时使用。
+
+        ===== ORIGINAL SQL TEXT =====
+        SELECT d.dname,
+               e.empno
+        FROM big_dept d,
+             big_emp e
+        WHERE d.deptno=e.deptno LIMIT 10
+
 #### 执行计划
-  就是调用explain extended的输出结果。如果结果过长，可能出现显示串行的问题(暂时未解决)。
+  就是调用explain extended的输出结果。<s>如果结果过长，可能出现显示串行的问题(暂时未解决)。</s>
 
     ===== SQL PLAN =====
     +----+-------------+-------+------------+-------+---------------+----------------+---------+---------------+------+----------+-------------+
@@ -253,6 +253,7 @@
 
 #### 执行时长
   实际执行时长。
+  // status 和 profile 都 on 时 会执行两次。
 
     ===== EXECUTE TIME =====
     0 day 0 hour 0 minute 0 second 162 microsecond
