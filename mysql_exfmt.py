@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 # ------------------------------------------------------------------------
-# author      : shane.xb.qian
+# author      : Shane.Qian#foxmail.com
 # createdat   : Wednesday, June 19, 2019 PM06:50:11 CST @ China
 # ------------------------------------------------------------------------
 # description : fmt mysql sql explain output with others info collection.
@@ -16,8 +16,8 @@ import sys
 from warnings import filterwarnings
 
 import MySQLdb
-import sqlparse
 import sql_metadata
+import sqlparse
 from prettytable import PrettyTable
 from sqlparse.sql import Identifier, IdentifierList
 from sqlparse.tokens import DML, Keyword
@@ -248,21 +248,37 @@ def f_exec_sql(p_dbinfo, p_sqltext, p_option):
     conn.close()
     return results
 
-def f_print_hitrate(p_dbinfo):
+
+def f_get_hit(p_dbinfo):
+    results = []
     conn = MySQLdb.connect(host=p_dbinfo[0], port=int(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
     cursor = conn.cursor()
     # show engine innodb status
     cursor.execute("""
-    SELECT concat(round(P1.variable_value / (P2.variable_value + P1.variable_value), 4)*100, '%'), P1.variable_value, P2.variable_value
+    SELECT concat(round(P1.variable_value/(P2.variable_value + P1.variable_value)*100, 4), '%'), P1.variable_value, P2.variable_value
     FROM performance_schema.global_status P1, performance_schema.global_status P2
     WHERE P1.variable_name = 'innodb_buffer_pool_read_requests' AND P2.variable_name = 'innodb_buffer_pool_reads'
     """)
     # fromdual.com/innodb-variables-and-status-explained
-    print("\033[1;31;40m%s\033[0m" % "===== HIT RATE =====")
-    print_table(['hit', 'reqs', 'reads'], cursor.fetchall(), ['l', 'r', 'r'])
-    print()
+    results = cursor.fetchall()
+    cursor.execute("""
+    SELECT sec_to_time(variable_value)
+    FROM performance_schema.global_status
+    WHERE variable_name in ('uptime', 'uptime_since_flush_status')
+    """)
+    res_tmp = list(results[0])
+    for r in cursor.fetchall():
+        res_tmp = res_tmp + [r[0], ]
     cursor.close()
     conn.close()
+    return (res_tmp,)
+
+
+def f_print_hit(p_hit_data):
+    print("\033[1;31;40m%s\033[0m" % "===== HIT (GLOBAL) =====")
+    print_table(['hit', 'reqs', 'reads', 'uptime', 'uptime_since_flush_status'], p_hit_data, ['l', 'r', 'r', 'r', 'r'])
+    print()
+
 
 def f_calc_status(p_before_status, p_after_status):
     results = []
@@ -286,7 +302,7 @@ def f_print_time(p_title_additional, p_starttime, p_endtime):
 
 
 def f_print_profiling(p_profiling_detail, p_profiling_summary):
-    print("\033[1;31;40m%s\033[0m" % "===== SQL PROFILING(DETAIL)=====")
+    print("\033[1;31;40m%s\033[0m" % "===== SQL PROFILING(DETAIL) =====")
     print_table(['state', 'duration', 'cpu_user', 'cpu_sys', 'bk_in', 'bk_out', 'msg_s', 'msg_r', 'p_f_ma', 'p_f_mi', 'swaps'], p_profiling_detail, ['l', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r'])
     print('bk_in:   block_ops_in')
     print('bk_out:  block_ops_out')
@@ -296,7 +312,7 @@ def f_print_profiling(p_profiling_detail, p_profiling_summary):
     print('p_f_mi:  page_faults_minor')
     print()
 
-    print("\033[1;31;40m%s\033[0m" % "===== SQL PROFILING(SUMMARY)=====")
+    print("\033[1;31;40m%s\033[0m" % "===== SQL PROFILING(SUMMARY) =====")
     print_table(['state', 'total_r', 'pct_r', 'calls', 'r/call'], p_profiling_summary, ['l', 'r', 'r', 'r', 'r'])
     print()
 
@@ -417,10 +433,9 @@ def f_get_mysql_version(p_dbinfo):
 def f_print_title(p_dbinfo, p_mysql_version):
     print()
     print('*' * 100)
-    print('*', 'thinks for using - mysql sql exfmt tool - shane.xb.qian'.center(96), '*')
+    print('*', 'thinks for using - mysql sql exfmt tool - Shane.Qian#foxmail.com'.center(96), '*')
     print('*' * 100)
     print()
-
     print("\033[1;31;40m%s\033[0m" % "===== BASIC INFORMATION =====")
     print_table(['server_ip', 'server_port', 'user_name', 'db_name', 'db_version'], [[p_dbinfo[0], p_dbinfo[1], p_dbinfo[2], p_dbinfo[4], p_mysql_version]])
     print()
@@ -509,20 +524,17 @@ if __name__ == "__main__":
 
     f_print_orisql(sqltext)
 
-    # table_list = []
+    table_list = []
     if config.get("option", "sql_plan") == 'ON':
         sqlplan_result = f_get_sqlplan(dbinfo, sqltext)
         f_print_sqlplan(sqlplan_result['SQLPLAN'], sqlplan_result['WARNING'], mysql_version)
-        # table_list = set([ i[2] for i in sqlplan_result['SQLPLAN'] ])
+        table_list = list(set([i[2] for i in sqlplan_result['SQLPLAN']]))
 
     if config.get("option", "obj_stat") == 'ON':
         print("\033[1;31;40m%s\033[0m" % "===== OBJECT STATISTICS =====")
         # for table_name in table_list:
-        # sq: looks just alias tab name
         # for table_name in extract_tables(sqltext):
-        # sq: from 'sqlparse extract_table_names.py'
         for table_name in sql_metadata.get_query_tables(sqltext):
-        # sq: looks this is a little more accurate than others ..
             f_print_tableinfo(f_get_tableinfo(dbinfo, table_name))
             f_print_indexinfo(f_get_indexinfo(dbinfo, table_name))
             f_print_indexstat(f_get_indexstat(dbinfo, table_name))
@@ -550,4 +562,4 @@ if __name__ == "__main__":
 
         f_print_time(exec_title_add, starttime, endtime)
 
-    f_print_hitrate(dbinfo)
+    f_print_hit(f_get_hit(dbinfo))

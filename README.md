@@ -1,29 +1,24 @@
-本工具可以方便DBA的日常SQL调优工作。
+# mysql_exfmt
+'mysql_exfmt' is a dba tool for tuning sql, purposed to collect related information, and format them.
 
-其目的是将优化相关的信息，一次性收集并格式化，便于快速定位问题。
+## 1. Prepare
 
-### 1.准备条件
+### Version
+  it was running for python2 on mysql_v56, now transferred to python3 on mysql_v57.
 
-#### 版本
-  原版本主要是python2运行在mysql_v56上的，目前迁移至python3及兼容mysql_v57。
+### Grant
+  e.g `grant all on *.* to testuser@'localhost' identified by 'testpwd'`
 
-#### 授权
-  grant all on *.* to testuser@'localhost' identified by 'testpwd';
+### Parameter
+  ~~mysql_v57 may need to 'set global show_compatibility_56=on'~~
 
-#### 参数
-  ~~在5.7版本中，需要打开show_compatibility_56参数: set global show_compatibility_56=on;~~
-  
-  // 已自动适配这个兼容性，或并不需要打开这个设置。
+  // had tried to compatible this -should be not req anymore..
 
-### 2.调用方法
+## 2. Usage
+  `python3 ./mysql_tuning.py -p [config_ini] { -s [sql] | -f [sql_file] }`
 
-  python3 ./mysql_tuning.py
-
-  // 直接无参的运行会打印‘usage’帮助信息，可直接‘-f’从文件读入或‘-s’直接输入‘sql’。
-
-#### 配置文件
-  文本格式，共分两节信息。分别是[database]描述数据库连接信息，[option]运行配置信息。
-
+### Config
+```ini
       [database]
       server_ip   = 127.0.0.1
       server_port = 3306
@@ -31,26 +26,25 @@
       db_pwd      = testpwd
       db_name     = test
       [option]
-      sys_parm    = ON	//是否显示系统参数
-      sql_plan    = ON	//是否显示执行计划
-      obj_stat    = ON	//是否显示相关对象(表、索引)统计信息
-      ses_status  = ON	//是否显示运行前后状态信息(激活后会真实执行SQL)
-      sql_profile = ON	//是否显示PROFILE跟踪信息(激活后会真实执行SQL)
+      sys_parm    = ON	// ON or OFF to get sys parm
+      sql_plan    = ON	// ON or OFF to get sql plan
+      obj_stat    = ON	// ON or OFF to get obj stat
+      ses_status  = ON	// ON or OFF to get status diff (sql would really run if on)
+      sql_profile = ON	// ON or OFF to get profile info (sql would really run if on)
+```
 
-### 3.输出说明
+## 3. Output Example
 
-#### 标题部分
-   包含运行数据库的地址信息及数据版本信息。
+#### BASIC INFORMATION
 
-        ===== BASIC INFORMATION =====
-        +-----------+-------------+-----------+---------+------------+
-        | server_ip | server_port | user_name | db_name | db_version |
-        +-----------+-------------+-----------+---------+------------+
-        | localhost |     3501    |  testuser |   test  |   5.7.12   |
-        +-----------+-------------+-----------+---------+------------+
+    ===== BASIC INFORMATION =====
+    +-----------+-------------+-----------+---------+------------+
+    | server_ip | server_port | user_name | db_name | db_version |
+    +-----------+-------------+-----------+---------+------------+
+    | localhost |     3501    |  testuser |   test  |   5.7.12   |
+    +-----------+-------------+-----------+---------+------------+
 
-#### 系统级参数
-  脚本选择显示了部分与SQL性能相关的参数。
+#### SYSTEM PARAMETER
 
     ===== SYSTEM PARAMETER =====
     +-------------------------+-----------------+
@@ -74,7 +68,9 @@
     | tmp_table_size          |           1.0 G |
     +-------------------------+-----------------+
 
-#### 优化器开关
+  // just chose some paramters may related to sql performance.
+
+#### OPTIMIZER SWITCH
 
     ===== OPTIMIZER SWITCH =====
     +-------------------------------------+-------+
@@ -101,18 +97,16 @@
     | derived_merge                       |    on |
     +-------------------------------------+-------+
 
-#### 原始SQL
-  用户执行输入的SQL，这部分主要是为了后续对比重写SQL时使用。
+#### ORIGINAL SQL TEXT
 
-        ===== ORIGINAL SQL TEXT =====
-        SELECT d.dname,
-               e.empno
-        FROM big_dept d,
-             big_emp e
-        WHERE d.deptno=e.deptno LIMIT 10
+    ===== ORIGINAL SQL TEXT =====
+    SELECT d.dname,
+           e.empno
+    FROM big_dept d,
+         big_emp e
+    WHERE d.deptno=e.deptno LIMIT 10
 
-#### 执行计划
-  就是调用explain extended的输出结果。<s>如果结果过长，可能出现显示串行的问题(暂时未解决)。</s>
+#### SQL PLAN
 
     ===== SQL PLAN =====
     +----+-------------+-------+------------+-------+---------------+----------------+---------+---------------+------+----------+-------------+
@@ -122,8 +116,7 @@
     |  1 | SIMPLE      | e     | None       | ref   | fk_deptno     | fk_deptno      | 5       | test.d.deptno |  996 |    100.0 | Using index |
     +----+-------------+-------+------------+-------+---------------+----------------+---------+---------------+------+----------+-------------+
 
-#### 优化器改写后的SQL
-  通过这里可判断优化器是否对SQL进行了某种优化(例如子查询的处理)。
+#### OPTIMIZER REWRITE SQL
 
     ===== OPTIMIZER REWRITE SQL =====
     SELECT `test`.`d`.`dname` AS `dname`,
@@ -132,8 +125,7 @@
     JOIN `test`.`big_emp` `e`
     WHERE (`test`.`e`.`deptno` = `test`.`d`.`deptno`) LIMIT 10
 
-#### 统计信息
-  相关对象的统计信息(表、索引)。在SQL语句中所有涉及到的表及其索引的统计信息都会在这里显示出来。
+#### OBJECT STATISTICS
 
     ===== OBJECT STATISTICS =====
     +------------+--------+---------+------------+---------+----------+---------+----------+
@@ -175,8 +167,7 @@
     | idx_sal    | 2017-01-13 01:18:55 | size         |       1731 |        None | Number of pages in the index      |
     +------------+---------------------+--------------+------------+-------------+-----------------------------------+
 
-#### 运行状态信息
-  在会话级别对比了执行前后的状态(SHOW STATUS)，并将出现变化的部分显示出来。需要注意的是，因为收集状态数据是采用SELECT方式，会造成个别指标的误差(例如Com_select)。
+#### SESSION STATUS
 
     ===== SESSION STATUS (DIFFERENT) =====
     +----------------------------------+-----------+---------------+---------------+
@@ -217,10 +208,13 @@
     | Table_open_cache_misses          |         0 |             2 |           2.0 |
     +----------------------------------+-----------+---------------+---------------+
 
-#### PROFILE详细信息
-  调用SHOW PROFILE得到的详细信息。
+  // show the difference before/after sql ran,
 
-    ===== SQL PROFILING(DETAIL)=====
+  // but note perhaps a bit flaw (e.g Com_select) since it using 'select' to get data.
+
+#### SQL PROFILING
+
+    ===== SQL PROFILING(DETAIL) =====
     +----------------+----------+----------+----------+-------+--------+-------+-------+--------+--------+-------+
     | state          | duration | cpu_user |  cpu_sys | bk_in | bk_out | msg_s | msg_r | p_f_ma | p_f_mi | swaps |
     +----------------+----------+----------+----------+-------+--------+-------+-------+--------+--------+-------+
@@ -237,10 +231,7 @@
     p_f_ma:  page_faults_major
     p_f_mi:  page_faults_minor
 
-#### PROFILE汇总信息
-  根据PROFILE的资源消耗情况，显示不同阶段消耗对比情况(TOP N)，直观显示"瓶颈"所在。
-
-    ===== SQL PROFILING(SUMMARY)=====
+    ===== SQL PROFILING(SUMMARY) =====
     +----------------+----------+-------+-------+--------------+
     | state          |  total_r | pct_r | calls |       r/call |
     +----------------+----------+-------+-------+--------------+
@@ -251,14 +242,13 @@
     | closing tables | 0.000004 |  2.33 |     1 | 0.0000040000 |
     +----------------+----------+-------+-------+--------------+
 
-#### 执行时长
-  实际执行时长。
-  // status 和 profile 都 on 时 会执行两次。
+#### EXECUTE TIME
 
     ===== EXECUTE TIME =====
     0 day 0 hour 0 minute 0 second 162 microsecond
 
-## Author
-  - mysql_exfmt.py mig/upd by shane.xb.qian
-  - based on mysql_tuning.py v2.0 by hanfeng
+  // would run 2 times if status & profile both on.
 
+# Author
+  - mysql_exfmt.py mig/upd by Shane.Qian#foxmail.com
+  - based on mysql_tuning.py v2.0 originally by hanfeng

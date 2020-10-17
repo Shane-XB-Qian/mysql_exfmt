@@ -1,6 +1,6 @@
 # # 'mysql_config'
 # sudo apt install libmysqlclient-dev
 mysqlclient==1.4.1
-sqlparse==0.3.0
+sqlparse==0.4.1
 prettytable==0.7.2
-sql_metadata
+sql_metadata==1.9.1
