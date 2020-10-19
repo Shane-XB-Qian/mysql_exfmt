@@ -259,14 +259,39 @@ def f_get_hit(p_dbinfo):
     FROM performance_schema.global_status P1, performance_schema.global_status P2
     WHERE P1.variable_name = 'innodb_buffer_pool_read_requests' AND P2.variable_name = 'innodb_buffer_pool_reads'
     """)
-    # fromdual.com/innodb-variables-and-status-explained
     results = cursor.fetchall()
+    res_tmp = list(results[0])
     cursor.execute("""
     SELECT sec_to_time(variable_value)
     FROM performance_schema.global_status
     WHERE variable_name in ('uptime', 'uptime_since_flush_status')
     """)
-    res_tmp = list(results[0])
+    for r in cursor.fetchall():
+        res_tmp = res_tmp + [r[0], ]
+    cursor.execute("""
+    SELECT round(P1.variable_value/P2.variable_value, 2)
+    FROM performance_schema.global_status P1, performance_schema.global_status P2
+    WHERE P1.variable_name = 'questions' AND P2.variable_name = 'uptime'
+    """)
+    for r in cursor.fetchall():
+        res_tmp = res_tmp + [r[0], ]
+    # cursor.execute("""
+    # SELECT round((P1.variable_value + P2.variable_value)/P3.variable_value, 2), P1.variable_value, P2.variable_value
+    # FROM performance_schema.global_status P1, performance_schema.global_status P2, performance_schema.global_status P3
+    # WHERE P1.variable_name = 'com_commit' AND P2.variable_name = 'com_rollback' AND P2.variable_name = 'uptime'
+    # """)
+    # for r in cursor.fetchall():
+    #     res_tmp = res_tmp + [r[0], r[1], r[2], ]
+    cursor.execute("show global status where variable_name in ('com_commit','com_rollback', 'uptime')")
+    c = []
+    for r in cursor.fetchall():
+        c = c + [int(r[1]), ]
+    res_tmp = res_tmp + [round((c[0]+c[1])/c[2], 2), c[0], c[1], ]
+    cursor.execute("""
+    SELECT variable_value
+    FROM performance_schema.global_status
+    WHERE variable_name in ('threads_connected', 'threads_running')
+    """)
     for r in cursor.fetchall():
         res_tmp = res_tmp + [r[0], ]
     cursor.close()
@@ -276,7 +301,7 @@ def f_get_hit(p_dbinfo):
 
 def f_print_hit(p_hit_data):
     print("\033[1;31;40m%s\033[0m" % "===== HIT (GLOBAL) =====")
-    print_table(['hit', 'reqs', 'reads', 'uptime', 'uptime_since_flush_status'], p_hit_data, ['l', 'r', 'r', 'r', 'r'])
+    print_table(['hit', 'reqs', 'reads', 'uptime', 'uptime_since_flush_status', 'qps', 'tps', 'commit', 'rollback', 'threads_con', 'threads_run'], p_hit_data, ['l', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r'])
     print()
 
 
