@@ -286,7 +286,7 @@ def f_get_hit(p_dbinfo):
     c = []
     for r in cursor.fetchall():
         c = c + [int(r[1]), ]
-    res_tmp = res_tmp + [round((c[0]+c[1])/c[2], 2), c[0], c[1], ]
+    res_tmp = res_tmp + [round((c[0] + c[1]) / c[2], 2), c[0], c[1], ]
     cursor.execute("""
     SELECT variable_value
     FROM performance_schema.global_status
@@ -528,6 +528,17 @@ if __name__ == "__main__":
     if config_file == "" or sqltext == "":
         usage()
         sys.exit(1)
+
+    # if sqlparse.sql.Statement(sql_metadata.get_query_tokens(sqltext)).get_type() != 'SELECT':
+    # if sqlparse.sql.Statement(sqlparse.parse(sqltext)[0].tokens).get_type() != 'SELECT':
+    # shane: 'with' (CTE) starts from v8 and/or perhaps parsed as 'UNKNOWN' somehow..
+    tmpss = sqlparse.parse(sqltext)
+    if len(tmpss) > 1 or tmpss[0].get_type() != 'SELECT':
+        print(sqltext)
+        tmps = input('-- pls check/confirm sql was safe/correct to exec ?! [y/n] : ')
+        if str.strip(tmps) != 'y':
+            print("\033[1;31;40m%s\033[0m" % "WRN: [Reminder] should be dangerous or meaningless if to explain/exec not-dml/select-sql !")
+            sys.exit(3)
 
     config = configparser.ConfigParser()
     config.read_file(open(config_file, "rt"))
