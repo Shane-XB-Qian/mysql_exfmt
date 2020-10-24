@@ -4,7 +4,8 @@
 ## 1. Prepare
 
 ### Version
-  it was running for python2 on mysql_v56, now transferred to python3 on mysql_v57.
+  it was running for python2 on mysql_v56, now transferred to python3 on mysql_v57;
+  <br>and extended feature and fixed bugs etc..
 
 ### Grant
   e.g `grant all on *.* to testuser@'localhost' identified by 'testpwd'`
@@ -34,6 +35,7 @@
 ```
 
 ## 3. Output Example
+  // just some example, perhaps sth changed later..
 
 #### BASIC INFORMATION
 
