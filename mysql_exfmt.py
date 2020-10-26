@@ -305,6 +305,24 @@ def f_print_hit(p_hit_data):
     print()
 
 
+def f_print_extr(p_dbinfo):
+    results = []
+    conn = MySQLdb.connect(host=p_dbinfo[0], port=int(p_dbinfo[1]), user=p_dbinfo[2], passwd=p_dbinfo[3], db=p_dbinfo[4])
+    cursor = conn.cursor()
+    print("\033[1;31;40m%s\033[0m" % "===== EXTR (ACCOUNT) =====")
+    cursor.execute("show open tables where in_use != 0 or name_locked != 0")
+    print_table(['db', 'tab', 'in_use', 'name_locked'], cursor.fetchall(), ['l', 'r', 'r', 'r'])
+    cursor.execute("show global variables like '%lock%'")
+    print_table(['var', 'val'], cursor.fetchall(), ['l', 'r'])
+    cursor.execute("show full processlist")  # note: privilege scope
+    print_table(['id', 'user', 'host', 'db', 'cmd', 'time', 'state', 'info'], cursor.fetchall(), ['l', 'r', 'r', 'r', 'r', 'r', 'r', 'r'])
+    print({"account": p_dbinfo[2]})
+    print()
+    cursor.close()
+    conn.close()
+    return results
+
+
 def f_calc_status(p_before_status, p_after_status):
     results = []
     for key in sorted(p_before_status.keys()):
@@ -327,7 +345,7 @@ def f_print_time(p_title_additional, p_starttime, p_endtime):
 
 
 def f_print_profiling(p_profiling_detail, p_profiling_summary):
-    print("\033[1;31;40m%s\033[0m" % "===== SQL PROFILING(DETAIL) =====")
+    print("\033[1;31;40m%s\033[0m" % "===== SQL PROFILING (DETAIL) =====")
     print_table(['state', 'duration', 'cpu_user', 'cpu_sys', 'bk_in', 'bk_out', 'msg_s', 'msg_r', 'p_f_ma', 'p_f_mi', 'swaps'], p_profiling_detail, ['l', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r', 'r'])
     print('bk_in:   block_ops_in')
     print('bk_out:  block_ops_out')
@@ -337,7 +355,7 @@ def f_print_profiling(p_profiling_detail, p_profiling_summary):
     print('p_f_mi:  page_faults_minor')
     print()
 
-    print("\033[1;31;40m%s\033[0m" % "===== SQL PROFILING(SUMMARY) =====")
+    print("\033[1;31;40m%s\033[0m" % "===== SQL PROFILING (SUMMARY) =====")
     print_table(['state', 'total_r', 'pct_r', 'calls', 'r/call'], p_profiling_summary, ['l', 'r', 'r', 'r', 'r'])
     print()
 
@@ -599,3 +617,4 @@ if __name__ == "__main__":
         f_print_time(exec_title_add, starttime, endtime)
 
     f_print_hit(f_get_hit(dbinfo))
+    f_print_extr(dbinfo)
