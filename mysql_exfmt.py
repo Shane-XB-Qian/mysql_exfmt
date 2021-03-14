@@ -387,7 +387,9 @@ def f_print_sqlplan(p_sqlplan, p_warning, p_mysql_version):
 
     print("\033[1;31;40m%s\033[0m" % "===== SQL PLAN =====")
 
-    if p_mysql_version.split('.')[1] == '7':  # 5.7
+    ver_maj = int(p_mysql_version.split('.')[0])
+    ver_min = int(p_mysql_version.split('.')[1])
+    if (ver_maj == 5 and ver_min >= 7) or (ver_maj > 5):  # >=5.7
         print_table(['id', 'select_type', 'table', 'partitions', 'type', 'possible_keys', 'key', 'key_len', 'ref', 'rows', 'filtered', 'Extra'], p_sqlplan, ['r', 'l', 'l', 'l', 'l', 'l', 'l', 'l', 'l', 'r', 'r', 'l'])
     else:
         print_table(['id', 'select_type', 'table', 'type', 'possible_keys', 'key', 'key_len', 'ref', 'rows', 'filtered', 'Extra'], p_sqlplan, ['r', 'l', 'l', 'l', 'l', 'l', 'l', 'l', 'r', 'r', 'l'])
